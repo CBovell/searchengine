@@ -1,4 +1,6 @@
-public abstract class GeneralData {
+import java.io.Serializable;
+
+public abstract class GeneralData implements Serializable {
 
     String title;
     String url;

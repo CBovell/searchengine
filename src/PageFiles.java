@@ -1,7 +1,8 @@
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class PageFiles extends GeneralData {
+public class PageFiles extends GeneralData implements Serializable {
 
     public HashMap<String, Integer> words;
     public int totalWords;
