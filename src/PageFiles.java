@@ -25,4 +25,8 @@ public class PageFiles extends GeneralData implements Serializable {
 
     }
 
+    public String toString(){
+        return this.title +" "+ this.outgoingLinks.toString();
+    }
+
 }

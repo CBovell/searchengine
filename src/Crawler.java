@@ -19,55 +19,38 @@ public class Crawler {
 
     }
 
-    public static void testOut(){
-        try{
-            PrintWriter out  = new PrintWriter(new FileWriter("test" + File.separator + "beta.txt"));
-            File file = new File("test");
-            String[] files = file.list();
-            out.println(56);
-            out.println("hello");
-
-            for(int i = 0;i<files.length;i++){
-                System.out.println(files[i]);
-            }
-            out.println(56);
-            out.println("hello");
-            out.close();
-
-        }catch (IOException e){
-            System.out.println(e);
-        }
+    public void clearAndCreate(){
+        new File("files"+File.separator+"pageFiles").delete();
+        new File("files"+File.separator+"pageFreqFiles").delete();
+        new File("files"+File.separator+"pageFiles").mkdirs();
+        new File("files"+File.separator+"pageFreqFiles").mkdirs();
     }
 
-    public static  void testIn(){
-
-    }
-
-    public HashMap<String, Integer> getWords(String content){
-        HashMap<String, Integer> toReturn = new HashMap<>();
+    public GetWords getWords(String content){
+        HashMap<String, Integer> wordsMap = new HashMap<>();
         String words = (content.substring(content.indexOf("<p>")+4,content.indexOf("</p>")-1));
         String[] wordsList = words.split("\n");
         ArrayList<String> wordsArray = new ArrayList<String>();
 
         for(int i=0; i < wordsList.length;i++){
             wordsArray.add(wordsList[i]);
-            if(toReturn.containsKey(wordsList[i]) == false){
+            if(wordsMap.containsKey(wordsList[i]) == false){
                 if(this.wordDoc.containsKey(wordsList[i])){
-                    toReturn.put(wordsList[i], 1);
+                    wordsMap.put(wordsList[i], 1);
                     this.wordDoc.put(wordsList[i], this.wordDoc.get(wordsList[i])+1);
                 }
                 else{
-                    toReturn.put(wordsList[i], 1);
+                    wordsMap.put(wordsList[i], 1);
                     this.wordDoc.put(wordsList[i], 1);
                 }
             }
             else{
-                toReturn.put(wordsList[i], toReturn.get(wordsList[i])+1);
+                wordsMap.put(wordsList[i], wordsMap.get(wordsList[i])+1);
             }
         }
         this.numDocs+=1;
 
-        return toReturn;
+        return new GetWords(wordsList.length, wordsMap);
     }
 
     public String getTitle(String content){
@@ -96,28 +79,59 @@ public class Crawler {
     }
 
 
-    public void proccessData(String URL){
+    public void savePageData(String content, String URL){
+        String title_ = getTitle(content);
+        ArrayList<String> links = getOutgoingLinks(content, URL);
+        GetWords wordsData = getWords(content);
+        PageFiles data = new PageFiles(title_, URL, wordsData.wordsMap, wordsData.wordCount, links);
+        try {
+            ObjectOutputStream out;
+            out = new ObjectOutputStream(new FileOutputStream("files" + File.separator + "pageFiles" + File.separator + title_ + ".txt"));
+            out.writeObject(data);
+            out.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("Error: Cannot open file for writing");
+        } catch (IOException e) {
+            System.out.println("Error: Cannot write to file");
+        }
 
     }
 
     public void crawl(){
+        this.clearAndCreate();
+        HashSet<String> visited = new HashSet<>();
         Queue<String> q = new LinkedList<>();
         q.add(this.seed);
+        visited.add(this.seed);
+        int failCount=0;
 
         while(q.isEmpty() == false){
             try {
                 String content = WebRequester.readURL(q.peek());
+                savePageData(content, q.peek());
                 ArrayList<String> links = (this.getOutgoingLinks(content, q.peek()));
                 for(int i=0;i< links.size();i++){
-                    q.add(links.get(i));
+                    if(visited.contains(links.get(i)) == false){
+                        q.add(links.get(i));
+                        visited.add(links.get(i));
+                    }
                 }
+                q.remove();
 
 
             }catch(MalformedURLException e){
+                if(failCount>10){
+                    break;
+                }
+                failCount++;
                 e.printStackTrace();
                 String toReAdd = q.remove();
                 q.add(toReAdd);
             }catch(IOException e){
+                if(failCount>10){
+                    break;
+                }
+                failCount++;
                 e.printStackTrace();
                 String toReAdd = q.remove();
                 q.add(toReAdd);
@@ -126,7 +140,11 @@ public class Crawler {
 
         }
 
+    }
 
+    public static void main(String[] args){
+        Crawler crawl_ = new Crawler("https://people.scs.carleton.ca/~davidmckenney/tinyfruits/N-0.html");
+        crawl_.crawl();
     }
 
 }
