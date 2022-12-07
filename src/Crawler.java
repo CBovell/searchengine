@@ -103,7 +103,7 @@ public class Crawler {
         try {
             PageFiles pageFile;
             ObjectInputStream in;
-            in = new ObjectInputStream(new FileInputStream("files" + File.separator + "PageFiles"+ File.separator+ title));
+            in = new ObjectInputStream(new FileInputStream("files" + File.separator + "pageFiles"+ File.separator+ title));
             pageFile = (PageFiles) in.readObject();
             in.close();
             return pageFile;
@@ -150,7 +150,6 @@ public class Crawler {
                     } catch (IOException e) {
                         return false;
                     }
-
                 }
                 else{
                     return false;
@@ -181,7 +180,7 @@ public class Crawler {
         }
     }
 
-    public void crawl(){
+    public boolean crawl(){
         this.clearAndCreate();
         HashSet<String> visited = new HashSet<>();
         Queue<String> q = new LinkedList<>();
@@ -205,7 +204,7 @@ public class Crawler {
 
             }catch(MalformedURLException e){
                 if(failCount>10){
-                    break;
+                    return false;
                 }
                 failCount++;
                 e.printStackTrace();
@@ -213,7 +212,7 @@ public class Crawler {
                 q.add(toReAdd);
             }catch(IOException e){
                 if(failCount>10){
-                    break;
+                    return false;
                 }
                 failCount++;
                 e.printStackTrace();
@@ -224,7 +223,7 @@ public class Crawler {
 
         }
         calFreqData();
-
+        return true;
     }
 
     public static void main(String[] args){
