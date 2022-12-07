@@ -20,8 +20,7 @@ public class Crawler {
     }
 
     public void clearAndCreate(){
-        new File("files"+File.separator+"pageFiles").delete();
-        new File("files"+File.separator+"pageFreqFiles").delete();
+        new File("files").delete();
         new File("files"+File.separator+"pageFiles").mkdirs();
         new File("files"+File.separator+"pageFreqFiles").mkdirs();
     }
@@ -78,6 +77,92 @@ public class Crawler {
         return toReturn;
     }
 
+    public HashMap<String,Double> saveIDFData(){
+        HashMap<String, Double> idfData = new HashMap<>();
+        for (Map.Entry<String, Integer> entry : this.wordDoc.entrySet()) {
+            String key = entry.getKey();
+            Integer value = entry.getValue();
+            Double termFreq = (Math.log(this.numDocs/(1+value))/Math.log(2));
+            idfData.put(key, termFreq);
+        }
+        try {
+            IdfData IDFDATA = new IdfData(idfData);
+            ObjectOutputStream out;
+            out = new ObjectOutputStream(new FileOutputStream("files" + File.separator + "pageFreqFiles" + File.separator + "IDFData.txt"));
+            out.writeObject(IDFDATA);
+            out.close();
+            return idfData;
+        } catch (FileNotFoundException e) {
+            return null;
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    public PageFiles getPageFileData(String title){
+        try {
+            PageFiles pageFile;
+            ObjectInputStream in;
+            in = new ObjectInputStream(new FileInputStream("files" + File.separator + "PageFiles"+ File.separator+ title));
+            pageFile = (PageFiles) in.readObject();
+            in.close();
+            return pageFile;
+
+        } catch (ClassNotFoundException e) {
+            System.out.println("Error: Object's class does not match");
+            return null;
+        } catch (FileNotFoundException e) {
+            System.out.println("Error: Cannot open file for writing");
+            return null;
+        } catch (IOException e) {
+            System.out.println("Error: Cannot read from file");
+            return null;
+        }
+    }
+
+    public boolean calFreqData(){
+        HashMap<String, Double> idfData = saveIDFData();
+        File dir = new File("files" + File.separator+ "pageFiles");
+        String[] files = dir.list();
+        if(idfData != null){
+            for(int i=0;i< files.length;i++){
+                PageFiles currData = getPageFileData(files[i]);
+                if(currData != null){
+                    HashMap<String, Double> tfData = new HashMap<>();
+                    HashMap<String, Double> tfidfData = new HashMap<>();
+                    for (Map.Entry<String, Integer> entry : currData.words.entrySet()) {
+                        String key = entry.getKey();
+                        Integer value = entry.getValue();
+                        double tf = value/currData.totalWords;
+                        double tfidf = (Math.log(1+tf)/Math.log(2)) * idfData.get(key);
+                        tfData.put(key, tf);
+                        tfidfData.put(key, tfidf);
+                    }
+
+                    try {
+                        PageFreqFiles toAdd = new PageFreqFiles(currData.title, currData.url, tfData,tfidfData);
+                        ObjectOutputStream out;
+                        out = new ObjectOutputStream(new FileOutputStream("files" + File.separator + "pageFreqFiles" + File.separator + currData.title + ".txt"));
+                        out.writeObject(toAdd);
+                        out.close();
+                    } catch (FileNotFoundException e) {
+                        return false;
+                    } catch (IOException e) {
+                        return false;
+                    }
+
+                }
+                else{
+                    return false;
+                }
+            }
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
 
     public void savePageData(String content, String URL){
         String title_ = getTitle(content);
@@ -94,7 +179,6 @@ public class Crawler {
         } catch (IOException e) {
             System.out.println("Error: Cannot write to file");
         }
-
     }
 
     public void crawl(){
@@ -139,6 +223,7 @@ public class Crawler {
 
 
         }
+        calFreqData();
 
     }
 

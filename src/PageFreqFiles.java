@@ -6,9 +6,9 @@ public class PageFreqFiles extends GeneralData implements Serializable {
     public HashMap<String, Double> tfData;
     public HashMap<String, Double> tfidfData;
 
-    public PageFreqFiles(String title, String url, HashMap<String, Double> idfData, HashMap<String, Double> tfidfData){
+    public PageFreqFiles(String title, String url, HashMap<String, Double> tfData, HashMap<String, Double> tfidfData){
         super(title, url);
-        this.tfData = idfData;
+        this.tfData = tfData;
         this.tfidfData=tfidfData;
     }
 }
