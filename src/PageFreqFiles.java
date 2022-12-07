@@ -11,4 +11,9 @@ public class PageFreqFiles extends GeneralData implements Serializable {
         this.tfData = tfData;
         this.tfidfData=tfidfData;
     }
+
+
+    public String toString(){
+        return this.tfidfData.toString();
+    }
 }

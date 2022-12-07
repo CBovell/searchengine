@@ -82,7 +82,7 @@ public class Crawler {
         for (Map.Entry<String, Integer> entry : this.wordDoc.entrySet()) {
             String key = entry.getKey();
             Integer value = entry.getValue();
-            Double termFreq = (Math.log(this.numDocs/(1+value))/Math.log(2));
+            double termFreq = (Math.log((double)this.numDocs/(1+value))/Math.log(2));
             idfData.put(key, termFreq);
         }
         try {
@@ -133,7 +133,7 @@ public class Crawler {
                     for (Map.Entry<String, Integer> entry : currData.words.entrySet()) {
                         String key = entry.getKey();
                         Integer value = entry.getValue();
-                        double tf = value/currData.totalWords;
+                        double tf = (double)value/currData.totalWords;
                         double tfidf = (Math.log(1+tf)/Math.log(2)) * idfData.get(key);
                         tfData.put(key, tf);
                         tfidfData.put(key, tfidf);

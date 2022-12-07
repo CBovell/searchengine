@@ -9,4 +9,8 @@ public class IdfData implements Serializable {
     public IdfData(HashMap<String, Double> data){
         this.data=data;
     }
+
+    public String toString(){
+        return this.data.toString();
+    }
 }
