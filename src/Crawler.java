@@ -134,6 +134,7 @@ public class Crawler {
                     for (Map.Entry<String, Integer> entry : currData.words.entrySet()) {
                         String key = entry.getKey();
                         Integer value = entry.getValue();
+                        System.out.println(key);
                         double tf = (double)value/currData.totalWords;
                         double tfidf = (Math.log(1+tf)/Math.log(2)) * idfData.get(key);
                         tfData.put(key, tf);

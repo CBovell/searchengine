@@ -13,4 +13,12 @@ public class pageFreqData {
         this.score = 0.0;
     }
 
+    public String toString(){
+        return "[URL: " + this.url + ", Title: " + this.title + ", Score: "+this.score+"]";
+    }
+
+    public void printArr(){
+
+    }
+
 }
