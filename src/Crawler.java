@@ -23,6 +23,7 @@ public class Crawler {
         new File("files").delete();
         new File("files"+File.separator+"pageFiles").mkdirs();
         new File("files"+File.separator+"pageFreqFiles").mkdirs();
+        new File("files"+File.separator+"pageRank").mkdirs();
     }
 
     public GetWords getWords(String content){
@@ -190,6 +191,7 @@ public class Crawler {
 
         while(q.isEmpty() == false){
             try {
+
                 String content = WebRequester.readURL(q.peek());
                 savePageData(content, q.peek());
                 ArrayList<String> links = (this.getOutgoingLinks(content, q.peek()));
@@ -229,6 +231,8 @@ public class Crawler {
     public static void main(String[] args){
         Crawler crawl_ = new Crawler("https://people.scs.carleton.ca/~davidmckenney/tinyfruits/N-0.html");
         crawl_.crawl();
+        PageRank pgRank = new PageRank(crawl_.numDocs);
+        pgRank.runPageRank();
     }
 
 }
