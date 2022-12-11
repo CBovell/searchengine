@@ -13,14 +13,15 @@ public class Search {
     public HashMap<String, Double> idfData;
     public ArrayList<pageFreqData> csList;
     public boolean boost;
+    public int maxReturn;
 
 
 
-    public Search(String input, boolean boost){
-        init(input,boost);
+    public Search(String input, boolean boost, int X){
+        init(input,boost, X);
     }
 
-    public void init(String input, boolean boost){
+    public void init(String input, boolean boost, int X){
         this.phrase=new ArrayList<>();
         String[] phr = input.split(" ");
         for(int i=0;i<phr.length;i++){
@@ -31,6 +32,7 @@ public class Search {
         this.queryMap = new ArrayList<>();
         this.csList = new ArrayList<>();
         this.boost = boost;
+        this.maxReturn = X;
 
 
         try {
@@ -97,7 +99,7 @@ public class Search {
         if(this.csList.size() == 0){
             csList.add(0, freqData);
         }
-        else if (this.csList.size()<10) {
+        else if (this.csList.size()<this.maxReturn) {
             csList = insert_List(freqData);
         }
         else if (freqData.score>this.csList.get(this.csList.size()-1).score) {
@@ -218,19 +220,20 @@ public class Search {
         return toReturn;
     }
 
-    public ArrayList<String> search(){
+    public ArrayList<SearchResult> getInterfaceList(){
+        ArrayList<SearchResult> toReturn = new ArrayList<>();
+        for(int i=0; i<this.csList.size();i++){
+            SearchResult currObj = this.csList.get(i);
+            toReturn.add(currObj);
+        }
+        return toReturn;
+    }
+
+    public ArrayList<SearchResult> search(){
         this.populateBasisVector();
         this.populateQueryVector();
         this.calculateScore();
-        return finalString();
-    }
-
-    public static void main(String[] args){
-        Search search = new Search("coconut fig cherry", true);
-
-
-        System.out.println(search.search().toString());
-
+        return getInterfaceList();
     }
 }
 

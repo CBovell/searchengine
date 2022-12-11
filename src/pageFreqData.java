@@ -1,6 +1,6 @@
 import java.util.ArrayList;
 
-public class pageFreqData {
+public class pageFreqData implements SearchResult {
     public String url;
     public String title;
     public ArrayList<Double> scoreArr;
@@ -17,8 +17,12 @@ public class pageFreqData {
         return "[URL: " + this.url + ", Title: " + this.title + ", Score: "+this.score+"]";
     }
 
-    public void printArr(){
+    public String getTitle(){
+        return this.title;
+    }
 
+    public double getScore(){
+        return this.score;
     }
 
 }

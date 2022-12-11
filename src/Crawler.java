@@ -19,13 +19,6 @@ public class Crawler {
 
     }
 
-    public void clearAndCreate(){
-        new File("files").delete();
-        new File("files"+File.separator+"pageFiles").mkdirs();
-        new File("files"+File.separator+"pageFreqFiles").mkdirs();
-        new File("files"+File.separator+"pageRank").mkdirs();
-    }
-
     public GetWords getWords(String content){
         HashMap<String, Integer> wordsMap = new HashMap<>();
         String words = (content.substring(content.indexOf("<p>")+4,content.indexOf("</p>")-1));
@@ -57,7 +50,19 @@ public class Crawler {
         return (content.substring(content.indexOf("<title>")+7,content.indexOf("</title>")));
     }
 
-    public ArrayList<String> getOutgoingLinks(String content, String URL){
+    public void addIncoming(String link, String linkAdd ){
+        link=link.substring(link.lastIndexOf("/")+1, link.length()-5);
+
+        try{
+            PrintWriter out = new PrintWriter(new FileWriter("files" + File.separator + "incomingLinks" + File.separator + link + ".txt", true));
+            out.println(linkAdd);
+            out.close();
+        }catch(IOException e){
+            System.out.println("COULD NOT LOG!!");
+        }
+
+    }
+    public ArrayList<String> getOutgoingLinks(String content, String URL, boolean addIncome){
         String prefix = URL.substring(0, URL.lastIndexOf("/")+1);
         String words = (content.substring(content.indexOf("</p>")+5,content.indexOf("</body>")-1));
         ArrayList<String> toReturn = new ArrayList<String>();
@@ -70,9 +75,15 @@ public class Crawler {
             if(link.charAt(0) == '.'){
                 link=link.substring(2, link.length());
                 toReturn.add(prefix + link);
+                if(addIncome){
+                    addIncoming((prefix+link),URL);
+                }
             }
             else{
                 toReturn.add(link);
+                if(addIncome){
+                    addIncoming(link, URL);
+                }
             }
         }
         return toReturn;
@@ -134,7 +145,6 @@ public class Crawler {
                     for (Map.Entry<String, Integer> entry : currData.words.entrySet()) {
                         String key = entry.getKey();
                         Integer value = entry.getValue();
-                        System.out.println(key);
                         double tf = (double)value/currData.totalWords;
                         double tfidf = (Math.log(1+tf)/Math.log(2)) * idfData.get(key);
                         tfData.put(key, tf);
@@ -167,7 +177,7 @@ public class Crawler {
 
     public void savePageData(String content, String URL){
         String title_ = getTitle(content);
-        ArrayList<String> links = getOutgoingLinks(content, URL);
+        ArrayList<String> links = getOutgoingLinks(content, URL, false);
         GetWords wordsData = getWords(content);
         PageFiles data = new PageFiles(title_, URL, wordsData.wordsMap, wordsData.wordCount, links);
         try {
@@ -183,7 +193,6 @@ public class Crawler {
     }
 
     public boolean crawl(){
-        this.clearAndCreate();
         HashSet<String> visited = new HashSet<>();
         Queue<String> q = new LinkedList<>();
         q.add(this.seed);
@@ -192,10 +201,9 @@ public class Crawler {
 
         while(q.isEmpty() == false){
             try {
-
                 String content = WebRequester.readURL(q.peek());
                 savePageData(content, q.peek());
-                ArrayList<String> links = (this.getOutgoingLinks(content, q.peek()));
+                ArrayList<String> links = (this.getOutgoingLinks(content, q.peek(), true));
                 for(int i=0;i< links.size();i++){
                     if(visited.contains(links.get(i)) == false){
                         q.add(links.get(i));
@@ -203,8 +211,7 @@ public class Crawler {
                     }
                 }
                 q.remove();
-
-
+                
             }catch(MalformedURLException e){
                 if(failCount>10){
                     return false;
@@ -229,11 +236,8 @@ public class Crawler {
         return true;
     }
 
-    public static void main(String[] args){
-        Crawler crawl_ = new Crawler("https://people.scs.carleton.ca/~davidmckenney/tinyfruits/N-0.html");
-        crawl_.crawl();
-        PageRank pgRank = new PageRank(crawl_.numDocs);
-        pgRank.runPageRank();
-    }
+
+
+
 
 }
